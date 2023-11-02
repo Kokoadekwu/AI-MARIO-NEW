@@ -52,8 +52,13 @@ var gameConfig={
 /*====================================
 =            Game Status             =
 ====================================*/
+noseX = "";
+noseY = "";
+GameStatus = "";
 
 function game(){
+
+  console.log("noseX = " + noseX +" ,noseY =  "+ noseY);
 
   instializeInDraw();
   moveEnvironment(mario);
@@ -67,7 +72,7 @@ function game(){
     fill(255, 255, 255);
     textSize(40);
     textAlign(CENTER);
-    text("Press Any Arrow Keys to Start and Play ", gameConfig.screenX/2, gameConfig.screenY/2);
+    text("Press Play Button To Start The Game ", gameConfig.screenX/2, gameConfig.screenY/2);
     textSize(40);
 
     stroke(255);
@@ -84,13 +89,11 @@ function game(){
     scores(mario);
     manualControl(mario);
   
-    // optional control version of game
-    // autoControl(mario);
-  
   }
 
     // if game is over 
   if(gameConfig.status==='gameover'){
+    
     fill(0,0,0,150);
     rect(0,0,gameConfig.screenX,gameConfig.screenY);
 
@@ -112,23 +115,23 @@ function game(){
   }
 }  
 
+function startGame()
+{
+  GameStatus = "start";
+  document.getElementById("status").innerHTML = "Game Is Loading";
+}
 
 // change game status if any key is pressed
 function changeGameStatud(character){
-  if((keyDown(control.up) ||keyDown(control.left)||keyDown(control.right) )&& gameConfig.status==="start") {
-    world_start.play();
-    initializeCharacterStatus(mario);
-    gameConfig.status= "play";
+ if(noseX !="" && gameConfig.status==="start" && GameStatus=="start") { 
+   document.getElementById("status").innerHTML = "Game Is Loaded";
+   world_start.play();
+ initializeCharacterStatus(mario)
+    gameConfig.status= "play"
   }
   if(gameConfig.status==="gameover" && keyDown(control.revive)) {
-    gameConfig.status= "start";        
+    gameConfig.status= "start"        
   }
-}
-
-function startGame()
-{
-	GameStatus = "start";
-	document.getElementById("status").innerHTML = "Game Is Loading";
 }
 
 
@@ -219,6 +222,7 @@ function getCoins(coin,character){
   if( character.overlap(coin) && character.live && coin.get==false){
     character.coins+=1;
     coin.get=true;
+    mario_coin.play();
   };
 }
     
@@ -285,14 +289,14 @@ function autoControl(character){
 function manualControl(character){
   
   if(character.live){
-    if(keyDown(control.left)){
+    if(noseX < 300){
       character.velocity.x-=gameConfig.moveSpeed;
       character.changeAnimation('move');
       character.mirrorX(-1);
     }
 
-    if(keyDown(control.right)){
-      character.velocity.x+=gameConfig.moveSpeed;
+    if(noseX > 300){
+        character.velocity.x+=gameConfig.moveSpeed;
       character.changeAnimation('move');
       character.mirrorX(1);
     }
@@ -306,8 +310,9 @@ function manualControl(character){
 
 /* Movements of character */
 function jumping(character){
-	if( (keyWentDown(control.up)&&character.live) || (touchIsDown&&character.live) ){
-		character.velocity.y+=gameConfig.jump;
+	if( (noseY < 168  &&character.live) || (touchIsDown&&character.live) ){
+    character.velocity.y+=gameConfig.jump;
+    mario_jump.play();
 	}
 }
 
@@ -362,6 +367,7 @@ function StepOnEnemy(obj1,obj2){
     }else{
       obj1.velocity.y+=gameConfig.jump*0.8;
     }
+    mario_kick.play();
 	}
 }
 
@@ -374,6 +380,11 @@ function die(character){
     character.status="dead";
     character.changeAnimation('dead');
     character.velocity.y-=2;
+    console.log("die - " + character.liveNumber);
+    if(character.liveNumber > 0)
+    {
+      mario_die.play();
+    }
 }
 
 // check character status and response to sprite and game status
@@ -384,7 +395,8 @@ function checkStatus(character){
     reviveAfterMusic(character);
   }
   if(character.live==false && character.liveNumber==0){
-    gameConfig.status="gameover"
+    gameConfig.status="gameover";
+    mario_gameover.play();
   }
 
 }
@@ -406,7 +418,7 @@ function dontGetOutOfScreen(character){
   
   //if mario drop in the holes 
   if(character.position.y>gameConfig.screenY&&character.live && character==mario){
-  	die(mario);
+    die(mario);
   }
 
   if(character.position.x>gameConfig.screenX-(character.width*0.5)){
@@ -496,7 +508,7 @@ function moveEnvironment(character){
     environmentScrolling(platforms,environmentScrollingSpeed);
     environmentScrolling(bricks,environmentScrollingSpeed);
     environmentScrolling(clouds,environmentScrollingSpeed*0.5);
-    environmentScrolling(mountains,environmentScrollingSpeed*0.3); 
+    environmentScrolling(mountains,environmentScrollingSpeed*1.3); 
     environmentScrolling(pipes,environmentScrollingSpeed); 
     environmentScrolling(coins,environmentScrollingSpeed); 
     environmentScrolling(enemyMushrooms,environmentScrollingSpeed); 
